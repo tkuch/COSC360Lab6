@@ -11,12 +11,15 @@
   <p id="time_two"></p>
 
   <!-- Add button and table here -->
+  <button type="button" id="btn" style="margin-bottom: 1em;">Get City Info</button>
+  <table id="table"></table>
 
   <script>
   //set interval timers to trigger the refresh.  Here the callback function will
   //be called when the timer fires
   var var1 = setInterval(timer1, 1000);
   var var2 = setInterval(timer2, 1000);
+  cityInfoButton(); 
 
   //this is the callback function that will be run when timer1 runs.  Just pulls local time
   function timer1() {
@@ -42,8 +45,58 @@
                               });
       results.fail(function(jqXHR) {console.log("Error: " + jqXHR.status);});
       results.always(function() {console.log("done");});
+  }
 
+  function cityInfoButton() {
+    var button = $("#btn");
+    button.on('click', function (){
+      var results = $.get("http://www.randyconnolly.com/funwebdev/services/travel/cities.php");
+      results.done(function(data) {
+        button.prop('disabled', true);
+        var table = $('#table');
+        table.css("border-collapse", "collapse");
+        
+        //retrieve # of cols
+        var columns = [];
+        for (var i = 0; i < data.length; i++) {
+          for (var k in data[i]) {
+            if (columns.indexOf(k) === -1) {
+              columns.push(k);
+            }
+          }
+        }
 
+        //create table
+        createHeaders(table, data, columns);
+        createTableContent(table, data, columns);
+        $('#table th').css("border", "solid 1px black");
+        $('#table td').css("border", "solid 1px black");
+      });
+      results.fail(function(jqXHR) {console.log("Error retrieving city information: " + jqXHR.status);});
+      results.always(function () {console.log("done retrieving city information");});
+    });
+  }
+
+  function createHeaders(table, list, cols) {
+    var row = $('<tr></tr>');
+    for (var i = 0; i < cols.length; i++){
+      var header = $('<th></th>');
+      header.html(cols[i]);
+      row.append(header);
+    }
+    table.append(row);
+  }
+
+  function createTableContent(table, list, cols) {
+    for (var i = 0; i < list.length; i++) {
+      var row = $('<tr></tr>');
+      for (var j = 0; j < cols.length; j++) {
+        var dataCell = $('<td></td>');
+        dataCell.html(list[i][cols[j]]);
+        row.append(dataCell);
+      }
+      table.append(row);
+    }
   }
   </script>
 
